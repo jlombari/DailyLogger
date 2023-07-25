@@ -103,6 +103,7 @@ partial class MainForm
         // 
         txtLogEntry.Dock = DockStyle.Fill;
         txtLogEntry.Location = new Point(3, 3);
+        txtLogEntry.MaxLength = 1500;
         txtLogEntry.Multiline = true;
         txtLogEntry.Name = "txtLogEntry";
         txtLogEntry.Size = new Size(594, 362);

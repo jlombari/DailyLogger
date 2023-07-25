@@ -20,7 +20,9 @@ namespace Daily_Logger
         private void btnSave_Click(object sender, EventArgs e)
         {
             string fileName = "logHistory.xml";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataFolder, "Daily Logger");
+            string filePath = Path.Combine(appFolder, fileName);
 
             // Read the existing XML file using XDocument (LINQ to XML)
             XDocument xDocument = XDocument.Load(filePath);
@@ -53,7 +55,17 @@ namespace Daily_Logger
         private void InitializeLogs()
         {
             string fileName = "logHistory.xml";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataFolder, "Daily Logger");
+
+            // Create the directory if it doesn't exist
+            if (!Directory.Exists(appFolder))
+            {
+                Directory.CreateDirectory(appFolder);
+            }
+
+
+            string filePath = Path.Combine(appFolder, fileName);
             if (!File.Exists(filePath))
             {
                 XDocument xDocument = new XDocument(
@@ -65,7 +77,9 @@ namespace Daily_Logger
         private void TabPage2_Enter(object sender, EventArgs e)
         {
             string fileName = "logHistory.xml";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataFolder, "Daily Logger");
+            string filePath = Path.Combine(appFolder, fileName);
             XDocument xmlDoc = XDocument.Load(filePath);
             XElement rootElement = xmlDoc.Root;
             treeHistory.Nodes.Clear();
@@ -144,7 +158,9 @@ namespace Daily_Logger
         private void deleteLogToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string fileName = "logHistory.xml";
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataFolder, "Daily Logger");
+            string filePath = Path.Combine(appFolder, fileName);
             if (treeHistory.SelectedNode != null)
             {
 
@@ -162,6 +178,7 @@ namespace Daily_Logger
                         xmlDoc.Save(filePath);
                         treeHistory.SelectedNode.Remove();
                         TabPage2_Enter(sender, e);
+                        CleanUpEmptyLogEntries(filePath);
                     }
                 }
             }
@@ -177,6 +194,23 @@ namespace Daily_Logger
                 }
             }
             return null;
+        }
+        private void CleanUpEmptyLogEntries(string filePath)
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(filePath);
+
+            // Select all empty LogEntry elements using XPath
+            XmlNodeList emptyLogEntries = xmlDoc.SelectNodes("//LogEntry[not(node())]");
+
+            // Remove each empty LogEntry element from the XML
+            foreach (XmlNode emptyLogEntry in emptyLogEntries)
+            {
+                emptyLogEntry.ParentNode.RemoveChild(emptyLogEntry);
+            }
+
+            // Save the updated XML back to the file
+            xmlDoc.Save(filePath);
         }
     }
 }
